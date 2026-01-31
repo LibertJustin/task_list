@@ -9,7 +9,7 @@ struct Task {
 fn main() {
     let mut todos = load_todos();
     loop {
-        println!("==> 1. Add\n==> 2.View\n==> 3.Complete\n==> 4.Quit");
+        println!("|==> 1. Add|==> 2.View|==> 3.Complete|==> 4.Quit");
         let mut choice = String::new();
         io::stdin()
             .read_line(&mut choice)
@@ -64,7 +64,7 @@ fn complete_task(todos: &mut Vec<Task>) {
     };
     match todos.iter_mut().find(|task| task.id == id_to_complete) {
         Some(task) => {
-            task.completed = true;
+            task.completed = !task.completed;
             println!("Task {} completed", id_to_complete);
         }
         None => println!("Task {} not found", id_to_complete),
