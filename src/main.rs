@@ -49,7 +49,6 @@ fn add_task(todos: &mut Vec<Task>) {
     };
     todos.push(new_task);
     println!("Task Added !");
-    return;
 }
 
 fn complete_task(todos: &mut Vec<Task>) {
