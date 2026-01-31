@@ -27,6 +27,7 @@ fn main() {
             }
             3 => complete_task(&mut todos),
             4 => {
+                save_tasks(todos);
                 println!("Goodbye");
                 break;
             }
@@ -68,4 +69,12 @@ fn complete_task(todos: &mut Vec<Task>) {
         }
         None => println!("Task {} not found", id_to_complete),
     }
+}
+
+fn save_tasks(todos: Vec<Task>) {
+    let mut content = String::new();
+    for task in todos {
+        content.push_str(format!("{},{},{}\n", task.id, task.description, task.completed).as_str());
+    }
+    std::fs::write("todos.csv", content).expect("Failed to write file.");
 }
