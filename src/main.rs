@@ -74,7 +74,8 @@ fn complete_task(todos: &mut Vec<Task>) {
 fn save_tasks(todos: Vec<Task>) {
     let mut content = String::new();
     for task in todos {
-        content.push_str(format!("{},{},{}\n", task.id, task.description, task.completed).as_str());
+        content
+            .push_str(format!("{}||{}||{}\n", task.id, task.description, task.completed).as_str());
     }
     std::fs::write("todos.csv", content).expect("Failed to write file.");
 }
@@ -84,7 +85,7 @@ fn load_todos() -> Vec<Task> {
         Ok(content) => {
             let mut todos = Vec::<Task>::new();
             for line in content.lines() {
-                let parts: Vec<&str> = line.split(",").collect();
+                let parts: Vec<&str> = line.split("||").collect();
                 if parts.len() == 3 {
                     let new_task = Task {
                         id: parts[0].trim().parse().unwrap(),
