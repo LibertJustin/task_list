@@ -8,8 +8,8 @@ struct Task {
 
 fn main() {
     let mut todos = load_todos();
+    println!("=>1.Add\n=> 2.View\n=> 3.Complete\n=> 4.Quit\n=> 5.Save");
     loop {
-        println!("|==> 1. Add|==> 2.View|==> 3.Complete|==> 4.Quit");
         let mut choice = String::new();
         io::stdin()
             .read_line(&mut choice)
@@ -27,10 +27,11 @@ fn main() {
             }
             3 => complete_task(&mut todos),
             4 => {
-                save_tasks(todos);
+                save_tasks(&todos);
                 println!("Goodbye");
                 break;
             }
+            5 => save_tasks(&todos),
             _ => println!("Invalid Choice"),
         }
     }
@@ -71,7 +72,7 @@ fn complete_task(todos: &mut Vec<Task>) {
     }
 }
 
-fn save_tasks(todos: Vec<Task>) {
+fn save_tasks(todos: &Vec<Task>) {
     let mut content = String::new();
     for task in todos {
         content
