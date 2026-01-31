@@ -41,8 +41,9 @@ fn add_task(todos: &mut Vec<Task>) {
     io::stdin()
         .read_line(&mut name)
         .expect("Failed to read line.");
+    let new_id: u32 = todos.len().try_into().unwrap();
     let new_task = Task {
-        id: 1,
+        id: new_id + 1,
         description: name.trim().to_string(),
         completed: false,
     };
@@ -61,18 +62,11 @@ fn complete_task(todos: &mut Vec<Task>) {
         Ok(num) => num,
         Err(_) => return,
     };
-    let mut bol: bool = false;
-    for task in todos {
-        if task.id == id_to_complete {
+    match todos.iter_mut().find(|task| task.id == id_to_complete) {
+        Some(task) => {
             task.completed = true;
-            bol = true;
-            break;
+            println!("Task {} completed", id_to_complete);
         }
+        None => println!("Task {} not found", id_to_complete),
     }
-    if bol {
-        println!("Task {} completed", id_to_complete);
-    } else {
-        println!("Task {} not found", id_to_complete);
-    }
-    return;
 }
