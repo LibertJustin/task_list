@@ -8,7 +8,7 @@ struct Task {
 
 fn main() {
     let mut todos = load_todos();
-    println!("=>1.Add\n=> 2.View\n=> 3.Complete\n=> 4.Quit\n=> 5.Save");
+    println!("=> 1.Add\n=> 2.View\n=> 3.Complete\n=> 4.Quit\n=> 5.Save");
     loop {
         let mut choice = String::new();
         io::stdin()
