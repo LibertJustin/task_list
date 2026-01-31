@@ -22,7 +22,12 @@ fn main() {
             1 => add_task(&mut todos),
             2 => {
                 for task in &todos {
-                    println!("[{}]->{}.{};", task.completed, task.id, task.description);
+                    println!(
+                        "[{}]-> {}.{};",
+                        if task.completed { "*" } else { " " },
+                        task.id,
+                        task.description
+                    );
                 }
             }
             3 => complete_task(&mut todos),
