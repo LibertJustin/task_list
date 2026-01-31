@@ -7,7 +7,7 @@ struct Task {
 }
 
 fn main() {
-    let mut todos = Vec::<Task>::new();
+    let mut todos = load_todos();
     loop {
         println!("==> 1. Add\n==> 2.View\n==> 3.Complete\n==> 4.Quit");
         let mut choice = String::new();
@@ -77,4 +77,28 @@ fn save_tasks(todos: Vec<Task>) {
         content.push_str(format!("{},{},{}\n", task.id, task.description, task.completed).as_str());
     }
     std::fs::write("todos.csv", content).expect("Failed to write file.");
+}
+
+fn load_todos() -> Vec<Task> {
+    match std::fs::read_to_string("todos.csv") {
+        Ok(content) => {
+            let mut todos = Vec::<Task>::new();
+            for line in content.lines() {
+                let parts: Vec<&str> = line.split(",").collect();
+                if parts.len() == 3 {
+                    let new_task = Task {
+                        id: parts[0].trim().parse().unwrap(),
+                        description: parts[1].trim().to_string(),
+                        completed: parts[2].trim().parse().unwrap(),
+                    };
+                    todos.push(new_task);
+                }
+            }
+            return todos;
+        }
+        Err(_) => {
+            println!("Failed to load file, starting fresh.");
+            return Vec::<Task>::new();
+        }
+    };
 }
