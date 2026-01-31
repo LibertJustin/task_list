@@ -7,6 +7,9 @@ struct Task {
 }
 
 fn main() {
+    let args: Vec<String> = std::env::args().collect();
+    println!("{:?}", args);
+    return;
     let mut todos = load_todos();
     println!("=> 1.Add\n=> 2.View\n=> 3.Complete\n=> 4.Quit\n=> 5.Save");
     loop {
@@ -108,4 +111,17 @@ fn load_todos() -> Vec<Task> {
             return Vec::<Task>::new();
         }
     };
+}
+
+fn delete_task(todos: &mut Vec<Task>) {
+    println!("What is the id to delete ?");
+    let mut id_to_delete = String::new();
+    io::stdin()
+        .read_line(&mut id_to_delete)
+        .expect("Failed to read line");
+    let id_to_delete: u32 = match id_to_delete.trim().parse() {
+        Ok(num) => num,
+        Err(_) => return,
+    };
+    todos.retain(|task| task.id != id_to_delete);
 }
