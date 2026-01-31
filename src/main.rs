@@ -1,5 +1,6 @@
 use std::convert::TryInto;
 use std::io;
+use std::path::PathBuf;
 
 struct Task {
     id: u32,
@@ -9,10 +10,14 @@ struct Task {
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
-    if args.len() < 3 {
+    // If len is 1 (just the program name), run interactive.
+    // If len is 2+ (program + command), run CLI.
+    if args.len() < 2 {
         let mut todos = load_todos();
-        println!("=> 1.Add\n=> 2.View\n=> 3.Complete\n=> 4.Delete\n=> 5.Save\n=> 6.Quit");
         loop {
+            println!(
+                "|==> 1. Add |==> 2. View |==> 3. Complete |==> 4. Delete |==> 5. Save |==> 6. Quit"
+            );
             let mut choice = String::new();
             io::stdin()
                 .read_line(&mut choice)
@@ -23,47 +28,33 @@ fn main() {
             };
             match choice {
                 1 => add_task(&mut todos),
-                2 => {
-                    for task in &todos {
-                        println!(
-                            "[{}]-> {}.{};",
-                            if task.completed { "*" } else { " " },
-                            task.id,
-                            task.description
-                        );
-                    }
-                }
+                2 => show_todo(&todos), // Reused your helper function here!
                 3 => complete_task(&mut todos),
+                4 => delete_task(&mut todos),
+                5 => save_tasks(&todos),
                 6 => {
                     save_tasks(&todos);
                     println!("Goodbye");
                     break;
                 }
-                5 => save_tasks(&todos),
-                4 => delete_task(&mut todos),
                 _ => println!("Invalid Choice"),
             }
         }
     } else {
+        // === CLI MODE ===
         let mut todos = load_todos();
         let command = &args[1];
 
-        let mut i: usize = 2;
-        let mut values = Vec::<String>::new();
-
-        while i < args.len() {
-            let val = args[i].clone();
-            values.push(val);
-            i += 1;
-        }
+        let values = args[2..].to_vec();
 
         match command.as_str() {
             "view" => show_todo(&todos),
             "add" => add_multiple_task(&mut todos, &values),
             "complete" => complete_multiple_task(&mut todos, &values),
             "delete" => delete_multiple_task(&mut todos, &values),
-            _ => println!("Unknown command : {}.", command),
+            _ => println!("Unknown command: {}.", command),
         }
+        save_tasks(&todos);
     }
 }
 
@@ -166,11 +157,11 @@ fn save_tasks(todos: &Vec<Task>) {
         content
             .push_str(format!("{}||{}||{}\n", task.id, task.description, task.completed).as_str());
     }
-    std::fs::write("todos.csv", content).expect("Failed to write file.");
+    std::fs::write(get_db_path(), content).expect("Failed to write file.");
 }
 
 fn load_todos() -> Vec<Task> {
-    match std::fs::read_to_string("todos.csv") {
+    match std::fs::read_to_string(get_db_path()) {
         Ok(content) => {
             let mut todos = Vec::<Task>::new();
             for line in content.lines() {
@@ -202,4 +193,15 @@ fn show_todo(todos: &Vec<Task>) {
             task.description
         );
     }
+}
+
+fn get_db_path() -> PathBuf {
+    // Try to find HOME (Linux/Mac), if not found, try USERPROFILE (Windows)
+    let home_dir = std::env::var("HOME")
+        .or_else(|_| std::env::var("USERPROFILE"))
+        .expect("Could not find home directory.");
+
+    let mut path = PathBuf::from(home_dir);
+    path.push(".todo_list_data.csv"); // .push handles the slash automatically
+    return path;
 }
