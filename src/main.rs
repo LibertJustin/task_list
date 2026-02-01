@@ -1,4 +1,5 @@
-use clap::{Parser, Subcommand};
+use clap::{CommandFactory, Parser, Subcommand};
+//use clap_complete::*;
 use colored::*;
 use serde::{Deserialize, Serialize};
 use std::convert::TryInto;
@@ -6,10 +7,16 @@ use std::path::PathBuf;
 
 #[derive(Subcommand)]
 enum Commands {
+    /// Add new tasks to your list: add "task1" "task2" ...
     Add { task: Vec<String> },
+    /// Lists your current tasks
     View,
+    /// Delete tasks from your list: delete id1 id2 ...
     Delete { id: Vec<u32> },
+    /// Complete/Uncomplete tasks from your list: complete id1 id2 ...
     Complete { id: Vec<u32> },
+    #[command(hide = true)]
+    Completion { shell: clap_complete::Shell },
 }
 #[derive(Parser)]
 struct Cli {
@@ -42,7 +49,21 @@ fn main() {
         Commands::View => {
             show_todo(&todos);
         }
-        _ => {}
+        Commands::Completion { shell } => {
+            let cmd = Cli::command();
+            // 1. Filter out the "completion" subcommand
+            // We clone the others so we have a clean list
+            let subcommands = cmd
+                .get_subcommands()
+                .filter(|sc| sc.get_name() != "completion")
+                .cloned()
+                .collect::<Vec<_>>();
+            // 2. Create a fresh "shadow" command for generation
+            // We add the filtered subcommands back to it
+            let mut shadow_cmd = clap::Command::new("todo").subcommands(subcommands);
+            // 3. Generate the script using the shadow command
+            clap_complete::generate(shell, &mut shadow_cmd, "todo", &mut std::io::stdout());
+        }
     }
 
     save_tasks(&todos);
