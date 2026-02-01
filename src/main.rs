@@ -1,11 +1,23 @@
+use clap::{Parser, Subcommand};
 use colored::*;
 use serde::{Deserialize, Serialize};
 use std::convert::TryInto;
-use std::io;
 use std::path::PathBuf;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Subcommand)]
+enum Commands {
+    Add { task: Vec<String> },
+    View,
+    Delete { id: Vec<u32> },
+    Complete { id: Vec<u32> },
+}
+#[derive(Parser)]
+struct Cli {
+    #[command(subcommand)]
+    command: Commands,
+}
 
+#[derive(Serialize, Deserialize, Debug)]
 struct Task {
     id: u32,
     description: String,
@@ -13,102 +25,27 @@ struct Task {
 }
 
 fn main() {
-    let args: Vec<String> = std::env::args().collect();
-    // If len is 1 (just the program name), run interactive.
-    // If len is 2+ (program + command), run CLI.
-    if args.len() < 2 {
-        let mut todos = load_todos();
-        loop {
-            println!(
-                "|==> 1. Add |==> 2. View |==> 3. Complete |==> 4. Delete |==> 5. Save |==> 6. Quit"
-            );
-            let mut choice = String::new();
-            io::stdin()
-                .read_line(&mut choice)
-                .expect("Failed to read line.");
-            let choice: u32 = match choice.trim().parse() {
-                Ok(num) => num,
-                Err(_) => continue,
-            };
-            match choice {
-                1 => add_task(&mut todos),
-                2 => show_todo(&todos), // Reused your helper function here!
-                3 => complete_task(&mut todos),
-                4 => delete_task(&mut todos),
-                5 => save_tasks(&todos),
-                6 => {
-                    save_tasks(&todos);
-                    println!("Goodbye");
-                    break;
-                }
-                _ => println!("Invalid Choice"),
-            }
-        }
-    } else {
-        // === CLI MODE ===
-        let mut todos = load_todos();
-        let command = &args[1];
+    let args = Cli::parse();
+    // === CLI MODE ===
+    let mut todos = load_todos();
 
-        let values = args[2..].to_vec();
-
-        match command.as_str() {
-            "view" => show_todo(&todos),
-            "add" => add_multiple_task(&mut todos, &values),
-            "complete" => complete_multiple_task(&mut todos, &values),
-            "delete" => delete_multiple_task(&mut todos, &values),
-            _ => println!("Unknown command: {}.", command),
+    match args.command {
+        Commands::Add { task } => {
+            add_multiple_task(&mut todos, &task);
         }
-        save_tasks(&todos);
+        Commands::Complete { id } => {
+            complete_multiple_task(&mut todos, &id);
+        }
+        Commands::Delete { id } => {
+            delete_multiple_task(&mut todos, &id);
+        }
+        Commands::View => {
+            show_todo(&todos);
+        }
+        _ => {}
     }
-}
 
-fn add_task(todos: &mut Vec<Task>) {
-    println!("What is the task ?");
-    let mut name = String::new();
-    io::stdin()
-        .read_line(&mut name)
-        .expect("Failed to read line.");
-    let new_id: u32 = todos.len().try_into().unwrap();
-    let new_task = Task {
-        id: new_id + 1,
-        description: name.trim().to_string(),
-        completed: false,
-    };
-    todos.push(new_task);
-    println!("Task Added !");
-}
-
-fn complete_task(todos: &mut Vec<Task>) {
-    println!("What is the id to complete ?");
-    let mut id_to_complete = String::new();
-    io::stdin()
-        .read_line(&mut id_to_complete)
-        .expect("Failed to read line");
-    let id_to_complete: u32 = match id_to_complete.trim().parse() {
-        Ok(num) => num,
-        Err(_) => return,
-    };
-    match todos.iter_mut().find(|task| task.id == id_to_complete) {
-        Some(task) => {
-            task.completed = !task.completed;
-            println!("Task {} completed", id_to_complete);
-        }
-        None => println!("Task {} not found", id_to_complete),
-    }
-}
-
-fn delete_task(todos: &mut Vec<Task>) {
-    println!("What is the id to delete ?");
-    let mut id_to_delete = String::new();
-    io::stdin()
-        .read_line(&mut id_to_delete)
-        .expect("Failed to read line");
-    let id_to_delete: u32 = match id_to_delete.trim().parse() {
-        Ok(num) => num,
-        Err(_) => return,
-    };
-    todos.retain(|task| task.id != id_to_delete);
-    println!("Task succesfully deleted");
+    save_tasks(&todos);
 }
 
 fn add_multiple_task(todos: &mut Vec<Task>, values: &Vec<String>) {
@@ -130,29 +67,21 @@ fn add_multiple_task(todos: &mut Vec<Task>, values: &Vec<String>) {
     println!("Tasks Added !");
 }
 
-fn complete_multiple_task(todos: &mut Vec<Task>, values: &Vec<String>) {
-    for elt in values {
-        let id_to_complete: u32 = match elt.trim().parse() {
-            Ok(num) => num,
-            Err(_) => continue,
-        };
-        match todos.iter_mut().find(|task| task.id == id_to_complete) {
+fn complete_multiple_task(todos: &mut Vec<Task>, values: &Vec<u32>) {
+    for id in values {
+        match todos.iter_mut().find(|task| task.id == *id) {
             Some(task) => {
                 task.completed = !task.completed;
-                println!("Task {} completed", id_to_complete);
+                println!("Task {} completed", id);
             }
-            None => println!("Task {} not found", id_to_complete),
+            None => println!("Task {} not found", id),
         }
     }
 }
 
-fn delete_multiple_task(todos: &mut Vec<Task>, values: &Vec<String>) {
-    for elt in values {
-        let id_to_delete: u32 = match elt.trim().parse() {
-            Ok(num) => num,
-            Err(_) => return,
-        };
-        todos.retain(|task| task.id != id_to_delete);
+fn delete_multiple_task(todos: &mut Vec<Task>, values: &Vec<u32>) {
+    for id in values {
+        todos.retain(|task| task.id != *id);
     }
     println!("Tasks succesfully deleted");
 }
