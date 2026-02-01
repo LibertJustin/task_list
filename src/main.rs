@@ -108,6 +108,7 @@ fn delete_task(todos: &mut Vec<Task>) {
         Err(_) => return,
     };
     todos.retain(|task| task.id != id_to_delete);
+    println!("Task succesfully deleted");
 }
 
 fn add_multiple_task(todos: &mut Vec<Task>, values: &Vec<String>) {
@@ -153,6 +154,7 @@ fn delete_multiple_task(todos: &mut Vec<Task>, values: &Vec<String>) {
         };
         todos.retain(|task| task.id != id_to_delete);
     }
+    println!("Tasks succesfully deleted");
 }
 
 fn save_tasks(todos: &Vec<Task>) {
