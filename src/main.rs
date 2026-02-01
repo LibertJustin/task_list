@@ -17,6 +17,10 @@ enum Commands {
     Complete { id: Vec<u32> },
     /// Edit the task description of the task with the id provided as: edit id new_description
     Edit { id: u32, task: String },
+    /// Removes all completed tasks
+    Clear,
+    /// Change the priority of the task with the id provided as: priority id new_priority
+    Priority {id: u32, priority: Priority},
     #[command(hide = true)]
     Completion { shell: clap_complete::Shell },
 }
@@ -46,6 +50,12 @@ fn main() {
         }
         Commands::Edit { id, task } => {
             edit_task(&mut todos, &id, task);
+        }
+        Commands::Clear => {
+            clear_completed_tasks(&mut todos);
+        }
+        Commands::Priority {id, priority} => {
+            edit_priority(&mut todos, &id, priority);
         }
         Commands::Completion { shell } => {
             let cmd = Cli::command();
