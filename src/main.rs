@@ -165,7 +165,6 @@ fn save_tasks(todos: &Vec<Task>) {
     }*/
     let content = serde_json::to_string_pretty(&todos).expect("Failed to serialize.");
     std::fs::write(get_db_path(), content).expect("Failed to write file.");
-    println!("Tasks saved");
 }
 
 fn load_todos() -> Vec<Task> {
