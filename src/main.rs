@@ -1,6 +1,7 @@
 use clap::{CommandFactory, Parser, Subcommand};
 //use clap_complete::*;
-use colored::*;
+//use colored::*;
+use comfy_table::{Cell, CellAlignment, Color, Table};
 use serde::{Deserialize, Serialize};
 use std::convert::TryInto;
 use std::path::PathBuf;
@@ -15,6 +16,8 @@ enum Commands {
     Delete { id: Vec<u32> },
     /// Complete/Uncomplete tasks from your list: complete id1 id2 ...
     Complete { id: Vec<u32> },
+    /// Edit the task description of the task with the id provided as: edit id new_description
+    Edit { id: u32, task: String },
     #[command(hide = true)]
     Completion { shell: clap_complete::Shell },
 }
@@ -48,6 +51,9 @@ fn main() {
         }
         Commands::View => {
             show_todo(&todos);
+        }
+        Commands::Edit { id, task } => {
+            edit_task(&mut todos, &id, task);
         }
         Commands::Completion { shell } => {
             let cmd = Cli::command();
@@ -153,13 +159,44 @@ fn load_todos() -> Vec<Task> {
 }
 
 fn show_todo(todos: &Vec<Task>) {
+    // Inside the View match arm:
+    let mut table = Table::new();
+    table.set_header(vec!["ID", "Task"]);
+    // Column 0 is ID -> Center it
+    table
+        .column_mut(0)
+        .unwrap()
+        .set_cell_alignment(CellAlignment::Center);
+    // Column 1 is Task -> Left align (default, but good to be explicit)
+    table
+        .column_mut(1)
+        .unwrap()
+        .set_cell_alignment(CellAlignment::Left);
+
     for task in todos {
-        let color_desc = if task.completed {
-            task.description.green()
+        // Create the ID cell (we can style this too if we want!)
+        let id_cell = Cell::new(&task.id).fg(Color::White);
+        // Create the Task cell with plain text first
+        let mut task_cell = Cell::new(&task.description);
+        // Apply color based on status
+        if task.completed {
+            task_cell = task_cell.fg(Color::DarkGreen);
         } else {
-            task.description.red()
-        };
-        println!("> {}.{}", task.id, color_desc);
+            task_cell = task_cell.fg(Color::DarkRed);
+        }
+        // Add the row using these smart cells
+        table.add_row([id_cell, task_cell]);
+    }
+    println!("{table}");
+}
+
+fn edit_task(todos: &mut Vec<Task>, id: &u32, new_task: String) {
+    match todos.iter_mut().find(|task| task.id == *id) {
+        Some(task) => {
+            task.description = new_task;
+            println!("Task {} changed", id);
+        }
+        None => println!("Task {} not found", id),
     }
 }
 
