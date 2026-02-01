@@ -1,0 +1,9 @@
+cargo install --path .
+
+mkdir -p ~/.zsh/completions
+
+todo completion zsh > ~/.zsh/completions/_todo
+
+grep -qF "autoload -Uz compinit" ~/.zshrc 2>/dev/null || { printf 'fpath=(~/.zsh/completions $fpath)\nautoload -Uz compinit\ncompinit\n' | cat - ~/.zshrc > ~/.zshrc.tmp && mv ~/.zshrc.tmp ~/.zshrc; }
+
+source ~/.zshrc
