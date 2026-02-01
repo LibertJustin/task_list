@@ -1,17 +1,40 @@
 use comfy_table::{Cell, CellAlignment, Color, Table};
 use serde::{Deserialize, Serialize};
 use std::convert::TryInto;
+use clap::ValueEnum;
 
-#[derive(Serialize, Deserialize, Debug)]
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, ValueEnum)]
+pub enum Priority {
+    High,
+    Medium,
+    Low,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Task {
     pub id: u32,
     pub description: String,
     pub completed: bool,
+    pub priority: Priority,
+}
+
+pub fn edit_priority(todos: &mut Vec<Task>, id: &u32, priority: Priority) {
+    match todos.iter_mut().find(|task| task.id == *id) {
+        Some(task) => {
+            task.priority = priority;
+            println!("Task {} priority changed", id);
+        }
+        None => println!("Task {} not found", id),
+    }
 }
 
 pub fn add_multiple_task(todos: &mut Vec<Task>, values: &Vec<String>) {
     for elt in values {
         let mut new_id: u32 = todos.len().try_into().unwrap();
+        if new_id == 0 {
+            new_id = 1;
+        }
         loop {
             match todos.iter_mut().find(|task| task.id == new_id) {
                 Some(_) => new_id += 1,
@@ -22,6 +45,7 @@ pub fn add_multiple_task(todos: &mut Vec<Task>, values: &Vec<String>) {
             id: new_id,
             description: elt.trim().to_string(),
             completed: false,
+            priority: Priority::Low,
         };
         todos.push(new_task);
     }
@@ -50,7 +74,7 @@ pub fn delete_multiple_task(todos: &mut Vec<Task>, values: &Vec<u32>) {
 pub fn show_todo(todos: &Vec<Task>) {
     // Inside the View match arm:
     let mut table = Table::new();
-    table.set_header(vec!["ID", "Task"]);
+    table.set_header(vec!["ID", "Task", "Priority"]);
     // Column 0 is ID -> Center it
     table
         .column_mut(0)
@@ -61,6 +85,8 @@ pub fn show_todo(todos: &Vec<Task>) {
         .column_mut(1)
         .unwrap()
         .set_cell_alignment(CellAlignment::Left);
+    // Column 2 is Priority -> Center it
+    table.column_mut(2).unwrap().set_cell_alignment(CellAlignment::Center);
 
     for task in todos {
         // Create the ID cell (we can style this too if we want!)
@@ -73,8 +99,13 @@ pub fn show_todo(todos: &Vec<Task>) {
         } else {
             task_cell = task_cell.fg(Color::DarkRed);
         }
+        let priority_cell = match task.priority {
+            Priority::High => Cell::new("High").fg(Color::DarkRed),
+            Priority::Medium => Cell::new("Medium").fg(Color::Yellow),
+            Priority::Low => Cell::new("Low").fg(Color::DarkGreen),
+        };
         // Add the row using these smart cells
-        table.add_row([id_cell, task_cell]);
+        table.add_row([id_cell, task_cell, priority_cell]);
     }
     println!("{table}");
 }
@@ -86,5 +117,16 @@ pub fn edit_task(todos: &mut Vec<Task>, id: &u32, new_task: String) {
             println!("Task {} changed", id);
         }
         None => println!("Task {} not found", id),
+    }
+}
+
+pub fn clear_completed_tasks(todos: &mut Vec<Task>) {
+    let initial_len = todos.len();
+    todos.retain(|task| !task.completed);
+    let removed_count = initial_len - todos.len();
+    if removed_count == 0 {
+        println!("No completed tasks to clear.");
+    } else {
+        println!("Cleared {} completed task(s).", removed_count);
     }
 }
