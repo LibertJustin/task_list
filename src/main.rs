@@ -1,6 +1,10 @@
+use colored::*;
+use serde::{Deserialize, Serialize};
 use std::convert::TryInto;
 use std::io;
 use std::path::PathBuf;
+
+#[derive(Serialize, Deserialize, Debug)]
 
 struct Task {
     id: u32,
@@ -152,16 +156,17 @@ fn delete_multiple_task(todos: &mut Vec<Task>, values: &Vec<String>) {
 }
 
 fn save_tasks(todos: &Vec<Task>) {
-    let mut content = String::new();
+    /*let mut content = String::new();
     for task in todos {
         content
             .push_str(format!("{}||{}||{}\n", task.id, task.description, task.completed).as_str());
-    }
+    }*/
+    let content = serde_json::to_string_pretty(&todos).expect("Failed to serialize.");
     std::fs::write(get_db_path(), content).expect("Failed to write file.");
 }
 
 fn load_todos() -> Vec<Task> {
-    match std::fs::read_to_string(get_db_path()) {
+    /*match std::fs::read_to_string(get_db_path()) {
         Ok(content) => {
             let mut todos = Vec::<Task>::new();
             for line in content.lines() {
@@ -181,17 +186,28 @@ fn load_todos() -> Vec<Task> {
             println!("Failed to load file, starting fresh.");
             return Vec::<Task>::new();
         }
-    };
+    };*/
+    match std::fs::read_to_string(get_db_path()) {
+        Ok(content) => {
+            // This one line parses the JSON string back into a Vec<Task>
+            // If the file is corrupted, it returns an error, which we unwrap
+            serde_json::from_str(&content).unwrap_or_else(|_| {
+                println!("File corrupted, starting fresh.");
+                Vec::new()
+            })
+        }
+        Err(_) => Vec::new(),
+    }
 }
 
 fn show_todo(todos: &Vec<Task>) {
     for task in todos {
-        println!(
-            "[{}]-> {}.{};",
-            if task.completed { "*" } else { " " },
-            task.id,
-            task.description
-        );
+        let color_desc = if task.completed {
+            task.description.green()
+        } else {
+            task.description.red()
+        };
+        println!("> {}.{}", task.id, color_desc);
     }
 }
 
