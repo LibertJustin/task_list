@@ -53,6 +53,14 @@ Remove tasks permanently by ID:
 todo delete 2
 ```
 
+### Editing Tasks
+
+Edit tasks by ID:
+
+```bash
+todo edit 2 "New task description"
+```
+
 ## Shell Completion 🐚
 
 To enable tab autocomplete (e.g., for Zsh), run:
