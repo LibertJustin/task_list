@@ -220,6 +220,6 @@ fn get_db_path() -> PathBuf {
         .expect("Could not find home directory.");
 
     let mut path = PathBuf::from(home_dir);
-    path.push(".todo_list_data.csv"); // .push handles the slash automatically
+    path.push(".todo_list_data.json"); // .push handles the slash automatically
     return path;
 }
