@@ -74,7 +74,7 @@ todo completion zsh > ~/.zsh/completions/_todo
 
 - [ ] Pretty printing with tables
 - [ ] Edit existing tasks
-- [ ] Global binary installation
+- [X] Global binary installation
 
 ## License ⚖️
 
