@@ -97,14 +97,14 @@ pub fn show_todo(todos: &Vec<Task>) {
         let mut task_cell = Cell::new(&task.description);
         // Apply color based on status
         if task.completed {
-            task_cell = task_cell.fg(Color::DarkGreen);
+            task_cell = task_cell.fg(Color::Green);
         } else {
             task_cell = task_cell.fg(Color::Red);
         }
         let priority_cell = match task.priority {
             Priority::High => Cell::new("High").fg(Color::Red),
             Priority::Medium => Cell::new("Medium").fg(Color::Yellow),
-            Priority::Low => Cell::new("Low").fg(Color::DarkGreen),
+            Priority::Low => Cell::new("Low").fg(Color::Green),
         };
         // Add the row using these smart cells
         table.add_row([id_cell, task_cell, priority_cell]);
