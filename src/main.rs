@@ -20,7 +20,9 @@ enum Commands {
     /// Removes all completed tasks
     Clear,
     /// Change the priority of the task with the id provided as: priority id new_priority
-    Priority {id: u32, priority: Priority},
+    Priority { id: u32, priority: Priority },
+    /// Sort by the option passed as : sort sort_option
+    Sort { opt: SortOpt },
     #[command(hide = true)]
     Completion { shell: clap_complete::Shell },
 }
@@ -54,8 +56,11 @@ fn main() {
         Commands::Clear => {
             clear_completed_tasks(&mut todos);
         }
-        Commands::Priority {id, priority} => {
+        Commands::Priority { id, priority } => {
             edit_priority(&mut todos, &id, priority);
+        }
+        Commands::Sort { opt } => {
+            sort(&mut todos, &opt);
         }
         Commands::Completion { shell } => {
             let cmd = Cli::command();

@@ -1,14 +1,20 @@
+use crate::Priority::*;
+use clap::ValueEnum;
 use comfy_table::{Cell, CellAlignment, Color, Table};
 use serde::{Deserialize, Serialize};
 use std::convert::TryInto;
-use clap::ValueEnum;
-
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, ValueEnum)]
 pub enum Priority {
     High,
     Medium,
     Low,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, ValueEnum)]
+pub enum SortOpt {
+    Id,
+    Priority,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -86,7 +92,10 @@ pub fn show_todo(todos: &Vec<Task>) {
         .unwrap()
         .set_cell_alignment(CellAlignment::Left);
     // Column 2 is Priority -> Center it
-    table.column_mut(2).unwrap().set_cell_alignment(CellAlignment::Center);
+    table
+        .column_mut(2)
+        .unwrap()
+        .set_cell_alignment(CellAlignment::Center);
 
     for task in todos {
         // Create the ID cell (we can style this too if we want!)
@@ -95,14 +104,14 @@ pub fn show_todo(todos: &Vec<Task>) {
         let mut task_cell = Cell::new(&task.description);
         // Apply color based on status
         if task.completed {
-            task_cell = task_cell.fg(Color::DarkGreen);
+            task_cell = task_cell.fg(Color::Green);
         } else {
-            task_cell = task_cell.fg(Color::DarkRed);
+            task_cell = task_cell.fg(Color::Red);
         }
         let priority_cell = match task.priority {
-            Priority::High => Cell::new("High").fg(Color::DarkRed),
+            Priority::High => Cell::new("High").fg(Color::Red),
             Priority::Medium => Cell::new("Medium").fg(Color::Yellow),
-            Priority::Low => Cell::new("Low").fg(Color::DarkGreen),
+            Priority::Low => Cell::new("Low").fg(Color::Green),
         };
         // Add the row using these smart cells
         table.add_row([id_cell, task_cell, priority_cell]);
@@ -128,5 +137,44 @@ pub fn clear_completed_tasks(todos: &mut Vec<Task>) {
         println!("No completed tasks to clear.");
     } else {
         println!("Cleared {} completed task(s).", removed_count);
+    }
+}
+
+pub fn sort(todos: &mut Vec<Task>, option: &SortOpt) {
+    match option {
+        SortOpt::Priority => {
+            let mut high = todos.clone();
+            let mut med = todos.clone();
+            let mut low = todos.clone();
+            high.retain(|task| task.priority == High);
+            med.retain(|task| task.priority == Medium);
+            low.retain(|task| task.priority == Low);
+            todos.retain(|_| false);
+            for task in high {
+                todos.push(task);
+            }
+            for task in med {
+                todos.push(task);
+            }
+            for task in low {
+                todos.push(task);
+            }
+        }
+        SortOpt::Id => {
+            let mut clone = todos.clone();
+            todos.retain(|_| false);
+            let mut i = 0;
+            while clone.len() != 0 {
+                match clone.iter().find(|task| task.id == i) {
+                    Some(task) => {
+                        todos.push(task.clone());
+                        clone.retain(|tsk| tsk.id != i);
+                        println!("Sorted {}", i);
+                        i += 1;
+                    }
+                    None => i += 1,
+                }
+            }
+        }
     }
 }
