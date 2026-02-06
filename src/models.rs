@@ -162,27 +162,18 @@ pub fn sort(todos: &mut Vec<Task>, option: &SortOpt) {
         }
         SortOpt::Id => {
             let mut clone = todos.clone();
-            println!("1\n");
             todos.retain(|_| false);
             let mut i = 0;
-            println!("2\n");
             while clone.len() != 0 {
-                match todos.iter().find(|&task| task.id == i) {
+                match clone.iter().find(|task| task.id == i) {
                     Some(task) => {
                         todos.push(task.clone());
                         clone.retain(|tsk| tsk.id != i);
                         println!("Sorted {}", i);
                         i += 1;
                     }
-                    None => {
-                        i += 1;
-                        println!("Not sorted {}", i);
-                    }
+                    None => i += 1,
                 }
-                if i > 10 {
-                    break;
-                }
-                println!("3\n");
             }
         }
     }
