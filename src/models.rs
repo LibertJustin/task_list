@@ -164,9 +164,16 @@ pub fn sort(todos: &mut Vec<Task>, option: &SortOpt) {
             let mut clone = todos.clone();
             todos.retain(|_| false);
             let mut i = 0;
-            let len = clone.len();
-            while i < len {
-                todos.push(todos.iter().find(|task| task.id == i));
+            while clone.len() != 0 {
+                let elt = todos.iter().find(|task| task.id == i);
+                match elt {
+                    Some(task) => {
+                        todos.push(task.clone());
+                        clone.retain(|tsk| tsk.id != i);
+                        i += 1;
+                    }
+                    None => i += 1,
+                }
             }
         }
     }
