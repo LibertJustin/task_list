@@ -1,8 +1,7 @@
+use clap::ValueEnum;
 use comfy_table::{Cell, CellAlignment, Color, Table};
 use serde::{Deserialize, Serialize};
 use std::convert::TryInto;
-use clap::ValueEnum;
-
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, ValueEnum)]
 pub enum Priority {
@@ -86,7 +85,10 @@ pub fn show_todo(todos: &Vec<Task>) {
         .unwrap()
         .set_cell_alignment(CellAlignment::Left);
     // Column 2 is Priority -> Center it
-    table.column_mut(2).unwrap().set_cell_alignment(CellAlignment::Center);
+    table
+        .column_mut(2)
+        .unwrap()
+        .set_cell_alignment(CellAlignment::Center);
 
     for task in todos {
         // Create the ID cell (we can style this too if we want!)
@@ -97,10 +99,10 @@ pub fn show_todo(todos: &Vec<Task>) {
         if task.completed {
             task_cell = task_cell.fg(Color::DarkGreen);
         } else {
-            task_cell = task_cell.fg(Color::DarkRed);
+            task_cell = task_cell.fg(Color::Red);
         }
         let priority_cell = match task.priority {
-            Priority::High => Cell::new("High").fg(Color::DarkRed),
+            Priority::High => Cell::new("High").fg(Color::Red),
             Priority::Medium => Cell::new("Medium").fg(Color::Yellow),
             Priority::Low => Cell::new("Low").fg(Color::DarkGreen),
         };
