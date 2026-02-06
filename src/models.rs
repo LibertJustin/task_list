@@ -1,3 +1,4 @@
+use crate::Priority::*;
 use clap::ValueEnum;
 use comfy_table::{Cell, CellAlignment, Color, Table};
 use serde::{Deserialize, Serialize};
@@ -8,6 +9,12 @@ pub enum Priority {
     High,
     Medium,
     Low,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, ValueEnum)]
+pub enum SortOpt {
+    Id,
+    Priority,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -130,5 +137,29 @@ pub fn clear_completed_tasks(todos: &mut Vec<Task>) {
         println!("No completed tasks to clear.");
     } else {
         println!("Cleared {} completed task(s).", removed_count);
+    }
+}
+
+pub fn sort(todos: &mut Vec<Task>, option: &SortOpt) {
+    match option {
+        SortOpt::Priority => {
+            let mut high = todos.clone();
+            let mut med = todos.clone();
+            let mut low = todos.clone();
+            high.retain(|task| task.priority == High);
+            med.retain(|task| task.priority == Medium);
+            low.retain(|task| task.priority == Low);
+            todos.retain(|_| false);
+            for task in high {
+                todos.push(task);
+            }
+            for task in med {
+                todos.push(task);
+            }
+            for task in low {
+                todos.push(task);
+            }
+        }
+        SortOpt::Id => {}
     }
 }
