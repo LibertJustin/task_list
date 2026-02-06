@@ -160,6 +160,14 @@ pub fn sort(todos: &mut Vec<Task>, option: &SortOpt) {
                 todos.push(task);
             }
         }
-        SortOpt::Id => {}
+        SortOpt::Id => {
+            let mut clone = todos.clone();
+            todos.retain(|_| false);
+            let mut i = 0;
+            let len = clone.len();
+            while i < len {
+                todos.push(todos.iter().find(|task| task.id == i));
+            }
+        }
     }
 }
