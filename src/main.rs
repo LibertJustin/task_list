@@ -36,6 +36,7 @@ fn main() {
     let args = Cli::parse();
     // === CLI MODE ===
     let mut todos = load_todos();
+    sort(&mut todos, &SortOpt::Id);
 
     match args.command {
         Commands::Add { task } => {
