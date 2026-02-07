@@ -159,6 +159,7 @@ pub fn sort(todos: &mut Vec<Task>, option: &SortOpt) {
             for task in low {
                 todos.push(task);
             }
+            println!("Sorted !");
         }
         SortOpt::Id => {
             let mut clone = todos.clone();
@@ -169,12 +170,12 @@ pub fn sort(todos: &mut Vec<Task>, option: &SortOpt) {
                     Some(task) => {
                         todos.push(task.clone());
                         clone.retain(|tsk| tsk.id != i);
-                        println!("Sorted {}", i);
                         i += 1;
                     }
                     None => i += 1,
                 }
             }
+            println!("Sorted !");
         }
     }
 }
