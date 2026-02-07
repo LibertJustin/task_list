@@ -78,6 +78,6 @@ fn main() {
             clap_complete::generate(shell, &mut shadow_cmd, "todo", &mut std::io::stdout());
         }
     }
-
+    sort(&mut todos, &SortOpt::Id);
     save_tasks(&todos);
 }
