@@ -50,18 +50,11 @@ fn main() {
             delete_multiple_task(&mut todos, &id);
         }
         Commands::View => {
-            let output = if cfg!(target_os = "windows") {
-                Command::new("cmd")
-                    .args(["/C", "clear"])
-                    .output()
-                    .expect("failed to execute process")
-            } else {
-                Command::new("sh")
-                    .arg("-c")
-                    .arg("clear")
-                    .output()
-                    .expect("failed to execute process")
-            };
+            let _ = Command::new("sh")
+                .arg("-c")
+                .arg("clear")
+                .output()
+                .expect("failed to execute process");
             show_todo(&todos);
         }
         Commands::Edit { id, task } => {
