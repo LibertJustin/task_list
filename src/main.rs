@@ -34,6 +34,19 @@ struct Cli {
     command: Commands,
 }
 
+fn clear_screen() {
+    if cfg!(target_os = "windows") {
+        Command::new("cmd")
+            .args(["/C", "cls"])
+            .status()
+            .expect("failed to execute process");
+    } else {
+        Command::new("clear")
+            .status()
+            .expect("failed to execute process");
+    }
+}
+
 fn main() {
     let args = Cli::parse();
     // === CLI MODE ===
@@ -50,11 +63,7 @@ fn main() {
             delete_multiple_task(&mut todos, &id);
         }
         Commands::View => {
-            let _ = Command::new("sh")
-                .arg("-c")
-                .arg("clear")
-                .output()
-                .expect("failed to execute process");
+            clear_screen();
             show_todo(&todos);
         }
         Commands::Edit { id, task } => {
