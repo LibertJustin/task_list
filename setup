@@ -1,9 +1,69 @@
+#!/bin/bash
+
+# 1. Installation du binaire via Cargo
+echo "📦 Installation du binaire..."
+if ! command -v cargo &> /dev/null; then
+    echo "❌ Cargo n'est pas installé. Veuillez installer Rust."
+    exit 1
+fi
 cargo install --path .
 
-mkdir -p ~/.zsh/completions
+# 2. Détection du Shell et configuration de l'auto-complétion
+CURRENT_SHELL=$(basename "$SHELL")
+echo "🐚 Shell détecté : $CURRENT_SHELL"
 
-todo completion zsh > ~/.zsh/completions/_todo
+case "$CURRENT_SHELL" in
+    zsh)
+        COMP_DIR="$HOME/.zsh/completions"
+        RC_FILE="$HOME/.zshrc"
 
-grep -qF "autoload -Uz compinit" ~/.zshrc 2>/dev/null || { printf 'fpath=(~/.zsh/completions $fpath)\nautoload -Uz compinit\ncompinit\n' | cat - ~/.zshrc > ~/.zshrc.tmp && mv ~/.zshrc.tmp ~/.zshrc; }
+        mkdir -p "$COMP_DIR"
+        # Génère le fichier de complétion
+        todo completion zsh > "$COMP_DIR/_todo"
 
-source ~/.zshrc
+        # Vérifie si la configuration existe déjà pour éviter les doublons
+        if ! grep -qF "fpath=($COMP_DIR \$fpath)" "$RC_FILE"; then
+            echo "" >> "$RC_FILE"
+            echo "# Todo completion" >> "$RC_FILE"
+            echo "fpath=($COMP_DIR \$fpath)" >> "$RC_FILE"
+            echo "autoload -Uz compinit && compinit" >> "$RC_FILE"
+            echo "✅ Configuration ajoutée à $RC_FILE"
+        else
+            echo "ℹ️  Configuration Zsh déjà présente."
+        fi
+        ;;
+
+    bash)
+        # Pour Bash, on source souvent directement ou on utilise bash_completion
+        COMP_FILE="$HOME/.todo-completion.bash"
+        RC_FILE="$HOME/.bashrc"
+
+        # Sur macOS, c'est parfois .bash_profile
+        if [[ "$OSTYPE" == "darwin"* && ! -f "$RC_FILE" ]]; then
+            RC_FILE="$HOME/.bash_profile"
+        fi
+
+        todo completion bash > "$COMP_FILE"
+
+        if ! grep -qF "source $COMP_FILE" "$RC_FILE"; then
+            echo "" >> "$RC_FILE"
+            echo "# Todo completion" >> "$RC_FILE"
+            echo "source $COMP_FILE" >> "$RC_FILE"
+            echo "✅ Configuration ajoutée à $RC_FILE"
+        fi
+        ;;
+
+    fish)
+        COMP_DIR="$HOME/.config/fish/completions"
+        mkdir -p "$COMP_DIR"
+        todo completion fish > "$COMP_DIR/todo.fish"
+        echo "✅ Complétions Fish installées dans $COMP_DIR"
+        ;;
+
+    *)
+        echo "⚠️  Shell non reconnu pour l'auto-configuration ($CURRENT_SHELL)."
+        echo "   Veuillez ajouter manuellement l'auto-complétion."
+        ;;
+esac
+
+echo "🎉 Installation terminée ! Veuillez redémarrer votre terminal ou exécuter 'source $RC_FILE'"
