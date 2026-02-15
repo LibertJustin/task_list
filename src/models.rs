@@ -15,6 +15,7 @@ pub enum Priority {
 pub enum SortOpt {
     Id,
     Priority,
+    ResetId,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -176,6 +177,12 @@ pub fn sort(todos: &mut Vec<Task>, option: &SortOpt) {
                 }
             }
             println!("Sorted !");
+        }
+        SortOpt::ResetId => {
+            for (i, task) in todos.iter_mut().enumerate() {
+                task.id = (i + 1).try_into().unwrap();
+            }
+            println!("IDs reset !");
         }
     }
 }
